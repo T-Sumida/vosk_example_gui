@@ -1,0 +1,1 @@
+GUI_APP_NAME = "Vosk Example"
