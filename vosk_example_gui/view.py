@@ -70,7 +70,7 @@ class Viwer:
             Tuple[Event, Any]: (Event種別, イベントの内容)
         """
         key, content = self.window.read(timeout=self.timeout)
-        if key == "__TIMEOUT__":
+        if key == "__TIMEOUT__" or key == _GUI_KEY.TABLE_KEY:
             # 特にEventがない場合
             return Event.NONE, content
 
