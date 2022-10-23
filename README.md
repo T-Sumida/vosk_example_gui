@@ -1,3 +1,5 @@
+[Japanese/[English](./README_EN.md)]
+
 # vosk_example_gui
 
 # Overview
