@@ -71,6 +71,8 @@ class App:
                     self.initialize_vosk()
                 if event == Event.CHANGE_AUDIO:
                     self.change_audio_source(content)
+                if event == Event.LOAD_FILE:
+                    self.load_words_from_file(content)
 
                 self.recognize(audio_data)
                 self.update_waveform(audio_data)
@@ -130,6 +132,28 @@ class App:
 
         self._current_audio = audio_source
         self.audio.start_streaming(self.input_device_config[self._current_audio])
+
+    def load_words_from_file(self, file_path: str) -> None:
+        """ファイル内の単語をword_listに追加する。（重複は弾く）
+
+        Args:
+            file_path (str): 対象のファイルパス
+        """
+        try:
+            with open(file_path, "r") as f:
+                lines = f.readlines()
+                for l in lines:
+                    l = l.strip()
+                    if l == "": continue
+                    if l in self.word_list: continue
+                    self.word_list.append(l)
+            self.viewer.update_table(self.word_list)
+        except IOError as e:
+            self._logger.error(f"IO Error. {e}")
+            self.viewer.show_error_popup(f"IO Error. {e}")
+        except Exception as e:
+            self._logger.error(f"{e}")
+            self.viewer.show_error_popup(f"FILE Error. {e}")
 
     def update_waveform(self, audio_data: Optional[bytes]) -> None:
         """入力信号をGUI上のグラフに反映する。
