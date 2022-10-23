@@ -1,0 +1,5 @@
+apple
+dog
+cat
+right
+left
