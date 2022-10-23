@@ -14,11 +14,14 @@ class Event(Enum):
     DELETE_WORD: int = 3
     SUBMIT_WORDS: int = 4
     CHANGE_AUDIO: int = 5
+    LOAD_FILE: int = 6
 
 
 class _GUI_KEY:
     TABLE_KEY: str = "__TABLE__"
     ADD_BUTTON_KEY: str = "__ADD__"
+    FILE_PATH_KEY: str = "__FILE_PATH__"
+    FILE_LOAD_BUTTON_KEY: str = "__FILE__"
     SUBMIT_BUTTON_KEY: str = "__SUBMIT__"
     INPUT_TEXT_KEY: str = "__WORD_TEXT__"
     WAVEFORM_GRAPH_KEY: str = "__WAVEFORM_GRAPH__"
@@ -70,9 +73,14 @@ class Viwer:
             Tuple[Event, Any]: (Event種別, イベントの内容)
         """
         key, content = self.window.read(timeout=self.timeout)
+        print(key, content)
         if key == "__TIMEOUT__" or key == _GUI_KEY.TABLE_KEY:
             # 特にEventがない場合
             return Event.NONE, content
+
+        elif key == _GUI_KEY.FILE_LOAD_BUTTON_KEY:
+            self.window.FindElement(_GUI_KEY.FILE_PATH_KEY).Update("")
+            return Event.LOAD_FILE, content["Browse"]
 
         elif key == _GUI_KEY.ADD_BUTTON_KEY:
             # ADDボタンが押された場合、テキストボックスの中身を返す
@@ -136,6 +144,17 @@ class Viwer:
                     (i - 1, prev_x * 150 + 150), (i, x * 150 + 150), color="red"
                 )
             prev_x = x
+    
+    def show_error_popup(self, msg: str) -> None:
+        """エラーポップアップを表示する。
+
+        Args:
+            msg (str): エラー内容
+        """
+        sg.popup_error(
+            msg,
+            title="Error"
+        )
 
     def _get_word_editor_frame(self, word_list: List) -> List:
         """下部フレームを初期化する。
@@ -157,7 +176,7 @@ class Viwer:
                             headings=["Word"],
                             text_color="black",
                             background_color="#cccccc",
-                            col_widths=[20],
+                            col_widths=[25],
                             num_rows=15,
                             key=_GUI_KEY.TABLE_KEY,
                             bind_return_key=True,
@@ -176,7 +195,11 @@ class Viwer:
                     ],
                     [
                         sg.InputText(key=_GUI_KEY.INPUT_TEXT_KEY, size=(10, 1)),
-                        sg.Submit(key=_GUI_KEY.ADD_BUTTON_KEY, button_text="ADD"),
+                        sg.Submit(key=_GUI_KEY.ADD_BUTTON_KEY, button_text="ADD WORD"),
+                    ],
+                    [
+                        sg.InputText(key=_GUI_KEY.FILE_PATH_KEY, size=(15, 1)),
+                        sg.FileBrowse(), sg.Submit(key=_GUI_KEY.FILE_LOAD_BUTTON_KEY, button_text="LOAD"),
                     ],
                     [
                         sg.Submit(
@@ -208,7 +231,7 @@ class Viwer:
                 layout=[
                     [
                         sg.Graph(
-                            canvas_size=(229, 125),
+                            canvas_size=(232, 125),
                             graph_bottom_left=(0, -10),
                             graph_top_right=(int(1024 / 2), 300),
                             background_color="white",
@@ -217,7 +240,7 @@ class Viwer:
                         sg.Combo(
                             pulldown_list,
                             default_value=pulldown_list[pulldown_list_default_idx],
-                            size=(19, len(pulldown_list)),
+                            size=(28, len(pulldown_list)),
                             key=_GUI_KEY.AUDIO_PULLDOWN_KEY,
                             readonly=True,
                         ),
